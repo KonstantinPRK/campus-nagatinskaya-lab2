@@ -13,7 +13,12 @@ import java.util.Set;
 /** Поиск маршрута в ширину (BFS). */
 public final class RouteFinder {
 
-    public RouteResult findRoute(CampusGraph graph, String start, String destination) {
+    public RouteResult findRoute(
+            CampusGraph graph,
+            String start,
+            String destination,
+            Set<String> blockedPoints
+    ) {
         if (graph == null) {
             return RouteResult.failure("Граф кампуса не задан");
         }
@@ -25,6 +30,14 @@ public final class RouteFinder {
         }
         if (start.equals(destination)) {
             return RouteResult.failure("Начальная и конечная точки совпадают");
+        }
+
+        Set<String> blocked = blockedPoints == null
+                ? Set.of()
+                : new HashSet<>(blockedPoints);
+
+        if (blocked.contains(start) || blocked.contains(destination)) {
+            return RouteResult.failure("Начальная или конечная точка временно недоступна");
         }
 
         Queue<String> queue = new ArrayDeque<>();
@@ -41,7 +54,7 @@ public final class RouteFinder {
             }
 
             for (String neighbour : graph.neighboursOf(current)) {
-                if (visited.contains(neighbour)) {
+                if (blocked.contains(neighbour) || visited.contains(neighbour)) {
                     continue;
                 }
                 visited.add(neighbour);
